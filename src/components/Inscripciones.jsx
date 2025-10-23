@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
+import API_BASE_URL from '../config/api';
 
-const baseUrlInscripciones = 'http://microservicios-lb-635095926.us-east-1.elb.amazonaws.com/inscripciones';
+const baseUrlInscripciones = `${API_BASE_URL}/inscripciones`;
 
 const tableStyle = {
   width: '100%',

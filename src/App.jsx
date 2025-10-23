@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import './App.css'
+import API_BASE_URL from './config/api'
 
 const api = {
   cursos: {
-    list: (params = '') => fetch(`http://microservicios-lb-635095926.us-east-1.elb.amazonaws.com/cursos${params}`).then(async r => {
+    list: (params = '') => fetch(`${API_BASE_URL}/cursos${params}`).then(async r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
       const text = await r.text()
       if (!text) return []
@@ -14,7 +15,7 @@ const api = {
         throw new Error('Invalid JSON response')
       }
     }),
-    get: (id) => fetch(`http://microservicios-lb-635095926.us-east-1.elb.amazonaws.com/cursos/${id}`).then(async r => {
+    get: (id) => fetch(`${API_BASE_URL}/cursos/${id}`).then(async r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
       const text = await r.text()
       if (!text) return {}
@@ -25,7 +26,7 @@ const api = {
         return {}
       }
     }),
-    create: (body) => fetch('http://microservicios-lb-635095926.us-east-1.elb.amazonaws.com/cursos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(async r => {
+    create: (body) => fetch('${API_BASE_URL}/cursos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(async r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
       const text = await r.text()
       if (!text) return { success: true }
@@ -36,7 +37,7 @@ const api = {
         return { success: true, raw: text }
       }
     }),
-    update: (id, body) => fetch(`http://microservicios-lb-635095926.us-east-1.elb.amazonaws.com/cursos/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(async r => {
+    update: (id, body) => fetch(`${API_BASE_URL}/cursos/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(async r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
       const text = await r.text()
       if (!text) return { success: true }
@@ -47,7 +48,7 @@ const api = {
         return { success: true, raw: text }
       }
     }),
-    delete: (id) => fetch(`http://microservicios-lb-635095926.us-east-1.elb.amazonaws.com/cursos/${id}`, { method: 'DELETE' }).then(async r => {
+    delete: (id) => fetch(`${API_BASE_URL}/cursos/${id}`, { method: 'DELETE' }).then(async r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
       const text = await r.text()
       if (!text) return { success: true }
@@ -58,7 +59,7 @@ const api = {
         return { success: true, raw: text }
       }
     }),
-    getLecciones: (id) => fetch(`http://microservicios-lb-635095926.us-east-1.elb.amazonaws.com/cursos/${id}/lecciones`).then(async r => {
+    getLecciones: (id) => fetch(`${API_BASE_URL}/cursos/${id}/lecciones`).then(async r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
       const text = await r.text()
       if (!text) return []
@@ -71,7 +72,7 @@ const api = {
     }),
   },
   estudiantes: {
-    list: (params = '') => fetch(`http://microservicios-lb-635095926.us-east-1.elb.amazonaws.com/estudiantes${params}`).then(async r => {
+    list: (params = '') => fetch(`${API_BASE_URL}/estudiantes${params}`).then(async r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
       const text = await r.text()
       if (!text) return { content: [], totalElements: 0 }
@@ -86,7 +87,7 @@ const api = {
       if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
       return r.json()
     }),
-    create: (body) => fetch('http://microservicios-lb-635095926.us-east-1.elb.amazonaws.com/estudiantes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(async r => {
+    create: (body) => fetch('${API_BASE_URL}/estudiantes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(async r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
       const text = await r.text()
       if (!text) return { success: true }
@@ -107,7 +108,7 @@ const api = {
     }),
   },
   inscripciones: {
-    list: () => fetch('http://microservicios-lb-635095926.us-east-1.elb.amazonaws.com/inscripciones').then(async r => {
+    list: () => fetch('${API_BASE_URL}/inscripciones').then(async r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
       const text = await r.text()
       if (!text) return []
@@ -118,7 +119,7 @@ const api = {
         return []
       }
     }),
-    create: (body) => fetch('http://microservicios-lb-635095926.us-east-1.elb.amazonaws.com/inscripciones', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(async r => {
+    create: (body) => fetch('${API_BASE_URL}/inscripciones', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(async r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
       const text = await r.text()
       if (!text) return { success: true }
@@ -142,7 +143,7 @@ const api = {
     }),
   },
   agregador: {
-    estadisticas: () => fetch('http://microservicios-lb-635095926.us-east-1.elb.amazonaws.com/agregador/dashboard/estadisticas').then(async r => {
+    estadisticas: () => fetch('${API_BASE_URL}/agregador/dashboard/estadisticas').then(async r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
       const text = await r.text()
       if (!text) return { total_estudiantes: 0, total_cursos: 0, total_inscripciones: 0, inscripciones_activas: 0 }
@@ -153,15 +154,15 @@ const api = {
         return { total_estudiantes: 0, total_cursos: 0, total_inscripciones: 0, inscripciones_activas: 0 }
       }
     }),
-    estudianteCompleto: (id) => fetch(`http://microservicios-lb-635095926.us-east-1.elb.amazonaws.com/agregador/estudiantes/${id}/detalles-completos`).then(async r => {
+    estudianteCompleto: (id) => fetch(`${API_BASE_URL}/agregador/estudiantes/${id}/detalles-completos`).then(async r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
       return r.json()
     }),
-    cursoCompleto: (id) => fetch(`http://microservicios-lb-635095926.us-east-1.elb.amazonaws.com/agregador/cursos/${id}/informacion-completa`).then(async r => {
+    cursoCompleto: (id) => fetch(`${API_BASE_URL}/agregador/cursos/${id}/informacion-completa`).then(async r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
       return r.json()
     }),
-    cursosPopulares: () => fetch('http://microservicios-lb-635095926.us-east-1.elb.amazonaws.com/agregador/cursos/populares').then(async r => {
+    cursosPopulares: () => fetch('${API_BASE_URL}/agregador/cursos/populares').then(async r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
       const text = await r.text()
       if (!text) return []
@@ -172,11 +173,11 @@ const api = {
         return []
       }
     }),
-    estadisticasProgreso: () => fetch('http://microservicios-lb-635095926.us-east-1.elb.amazonaws.com/agregador/inscripciones/estadisticas-progreso').then(async r => {
+    estadisticasProgreso: () => fetch('${API_BASE_URL}/agregador/inscripciones/estadisticas-progreso').then(async r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
       return r.json()
     }),
-    health: () => fetch('http://microservicios-lb-635095926.us-east-1.elb.amazonaws.com/agregador/health').then(async r => {
+    health: () => fetch('${API_BASE_URL}/agregador/health').then(async r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
       return r.json()
     }),

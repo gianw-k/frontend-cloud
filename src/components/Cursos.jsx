@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
+import API_BASE_URL from '../config/api';
 
-const baseUrlCursos = 'http://localhost:8010';
+const baseUrlCursos = `${API_BASE_URL}/cursos`;
 
 const tableStyle = {
   width: '100%',
