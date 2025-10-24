@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import API_BASE_URL from '../config/api';
 
 const baseUrlCursos = `${API_BASE_URL}/cursos`;
@@ -30,16 +30,25 @@ function Cursos() {
   const [nombre, setNombre] = useState('');
   const [bio, setBio] = useState('');
   const [fotoUrl, setFotoUrl] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const listarCursos = async () => {
+    setLoading(true);
     try {
-      const res = await fetch(`${baseUrlCursos}/cursos`);
+      const res = await fetch(`${baseUrlCursos}?page=1&size=100`);
       const data = await res.json();
-      setCursos(data);
+      setCursos(Array.isArray(data) ? data : []);
     } catch (error) {
-      alert('Error al cargar cursos: ' + error.message);
+      console.error('Error:', error);
+      setCursos([]);
+    } finally {
+      setLoading(false);
     }
   };
+
+  useEffect(() => {
+    listarCursos();
+  }, []);
 
   const crearInstructor = async (e) => {
     e.preventDefault();
@@ -62,7 +71,9 @@ function Cursos() {
   return (
     <div>
       <h2>Cursos</h2>
-      <button style={{ backgroundColor: '#007bff', color: 'white', padding: '8px 16px', border: 'none', borderRadius: '4px', cursor: 'pointer' }} onClick={listarCursos}>Listar Cursos</button>
+      <button style={{ backgroundColor: '#007bff', color: 'white', padding: '8px 16px', border: 'none', borderRadius: '4px', cursor: 'pointer' }} onClick={listarCursos} disabled={loading}>
+        {loading ? 'Cargando...' : 'Refrescar'}
+      </button>
       <table style={tableStyle}>
         <thead>
           <tr>
@@ -74,15 +85,25 @@ function Cursos() {
           </tr>
         </thead>
         <tbody>
-          {cursos.map((curso, index) => (
-            <tr key={curso.id || curso.slug} style={index % 2 ? trHoverStyle : {}}>
-              <td style={tdStyle}>{curso.id || curso.slug}</td>
-              <td style={tdStyle}>{curso.titulo}</td>
-              <td style={tdStyle}>{curso.descripcion}</td>
-              <td style={tdStyle}>{curso.nivel}</td>
-              <td style={tdStyle}>{curso.estado}</td>
+          {loading ? (
+            <tr>
+              <td colSpan="5" style={{ textAlign: 'center', padding: '20px' }}>Cargando...</td>
             </tr>
-          ))}
+          ) : cursos.length === 0 ? (
+            <tr>
+              <td colSpan="5" style={{ textAlign: 'center', padding: '20px' }}>No hay cursos</td>
+            </tr>
+          ) : (
+            cursos.map((curso, index) => (
+              <tr key={curso.id || curso.slug} style={index % 2 ? trHoverStyle : {}}>
+                <td style={tdStyle}>{curso.id || curso.slug}</td>
+                <td style={tdStyle}>{curso.titulo}</td>
+                <td style={tdStyle}>{curso.descripcion}</td>
+                <td style={tdStyle}>{curso.nivel}</td>
+                <td style={tdStyle}>{curso.estado}</td>
+              </tr>
+            ))
+          )}
         </tbody>
       </table>
 

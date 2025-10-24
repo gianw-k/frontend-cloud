@@ -4,7 +4,7 @@ import API_BASE_URL from './config/api'
 
 const api = {
   cursos: {
-    list: (params = '') => fetch(`${API_BASE_URL}/cursos${params}`).then(async r => {
+    list: (params = '?page=1&size=100') => fetch(`${API_BASE_URL}/cursos${params}`).then(async r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
       const text = await r.text()
       if (!text) return []
@@ -26,7 +26,7 @@ const api = {
         return {}
       }
     }),
-    create: (body) => fetch('${API_BASE_URL}/cursos', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(async r => {
+  create: (body) => fetch(`${API_BASE_URL}/cursos`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(async r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
       const text = await r.text()
       if (!text) return { success: true }
@@ -72,22 +72,23 @@ const api = {
     }),
   },
   estudiantes: {
-    list: (params = '') => fetch(`${API_BASE_URL}/estudiantes${params}`).then(async r => {
+    list: (params = '?page=0&size=10') => fetch(`${API_BASE_URL}/estudiantes${params}`).then(async r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
       const text = await r.text()
       if (!text) return { content: [], totalElements: 0 }
       try {
-        return JSON.parse(text)
+        const data = JSON.parse(text)
+        return data
       } catch (e) {
         console.error('Failed to parse JSON:', text)
         return { content: [], totalElements: 0 }
       }
     }),
-    get: (id) => fetch(`/api/estudiantes/${id}`).then(async r => {
+    get: (id) => fetch(`${API_BASE_URL}/estudiantes/${id}`).then(async r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
       return r.json()
     }),
-    create: (body) => fetch('${API_BASE_URL}/estudiantes', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(async r => {
+    create: (body) => fetch(`${API_BASE_URL}/estudiantes`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(async r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
       const text = await r.text()
       if (!text) return { success: true }
@@ -98,17 +99,17 @@ const api = {
         return { success: true, raw: text }
       }
     }),
-    update: (id, body) => fetch(`/api/estudiantes/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(async r => {
+  update: (id, body) => fetch(`${API_BASE_URL}/estudiantes/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(async r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
       return r.json()
     }),
-    delete: (id) => fetch(`/api/estudiantes/${id}`, { method: 'DELETE' }).then(r => {
+  delete: (id) => fetch(`${API_BASE_URL}/estudiantes/${id}`, { method: 'DELETE' }).then(r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
       return r
     }),
   },
   inscripciones: {
-    list: () => fetch('${API_BASE_URL}/inscripciones').then(async r => {
+    list: (params = '?page=0&size=100') => fetch(`${API_BASE_URL}/inscripciones${params}`).then(async r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
       const text = await r.text()
       if (!text) return []
@@ -119,7 +120,7 @@ const api = {
         return []
       }
     }),
-    create: (body) => fetch('${API_BASE_URL}/inscripciones', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(async r => {
+  create: (body) => fetch(`${API_BASE_URL}/inscripciones`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(async r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
       const text = await r.text()
       if (!text) return { success: true }
@@ -130,7 +131,7 @@ const api = {
         return { success: true, raw: text }
       }
     }),
-    updateProgreso: (id, body) => fetch(`/api/inscripciones/${id}/progreso`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(async r => {
+  updateProgreso: (id, body) => fetch(`${API_BASE_URL}/inscripciones/${id}/progreso`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }).then(async r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
       const text = await r.text()
       if (!text) return { success: true }
@@ -143,26 +144,26 @@ const api = {
     }),
   },
   agregador: {
-    estadisticas: () => fetch('${API_BASE_URL}/agregador/dashboard/estadisticas').then(async r => {
+    estadisticas: () => fetch(`${API_BASE_URL}/dashboard/estadisticas`).then(async r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
       const text = await r.text()
-      if (!text) return { total_estudiantes: 0, total_cursos: 0, total_inscripciones: 0, inscripciones_activas: 0 }
+      if (!text) throw new Error('Empty response from dashboard API')
       try {
         return JSON.parse(text)
       } catch (e) {
         console.error('Failed to parse JSON:', text)
-        return { total_estudiantes: 0, total_cursos: 0, total_inscripciones: 0, inscripciones_activas: 0 }
+        throw new Error('Invalid JSON response from dashboard')
       }
     }),
-    estudianteCompleto: (id) => fetch(`${API_BASE_URL}/agregador/estudiantes/${id}/detalles-completos`).then(async r => {
+  estudianteCompleto: (id) => fetch(`${API_BASE_URL}/estudiantes/${id}/detalles-completos`).then(async r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
       return r.json()
     }),
-    cursoCompleto: (id) => fetch(`${API_BASE_URL}/agregador/cursos/${id}/informacion-completa`).then(async r => {
+  cursoCompleto: (id) => fetch(`${API_BASE_URL}/cursos/${id}/informacion-completa`).then(async r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
       return r.json()
     }),
-    cursosPopulares: () => fetch('${API_BASE_URL}/agregador/cursos/populares').then(async r => {
+  cursosPopulares: () => fetch(`${API_BASE_URL}/cursos/populares`).then(async r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
       const text = await r.text()
       if (!text) return []
@@ -173,11 +174,11 @@ const api = {
         return []
       }
     }),
-    estadisticasProgreso: () => fetch('${API_BASE_URL}/agregador/inscripciones/estadisticas-progreso').then(async r => {
+  estadisticasProgreso: () => fetch(`${API_BASE_URL}/inscripciones/estadisticas-progreso`).then(async r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
       return r.json()
     }),
-    health: () => fetch('${API_BASE_URL}/agregador/health').then(async r => {
+  health: () => fetch(`${API_BASE_URL}/health`).then(async r => {
       if (!r.ok) throw new Error(`HTTP ${r.status}: ${r.statusText}`)
       return r.json()
     }),
@@ -433,7 +434,7 @@ function EstudiantesSection() {
   const [page, setPage] = useState(0)
   const [size, setSize] = useState(10)
   const [list, setList] = useState({ content: [], totalElements: 0 })
-  const [form, setForm] = useState({ nombre: '', email: '' })
+  const [form, setForm] = useState({ nombres: '', apellidos: '', email: '', telefono: '', pais: '' })
   const [search, setSearch] = useState('')
   const [selected, setSelected] = useState(null)
 
@@ -446,7 +447,7 @@ function EstudiantesSection() {
   const submit = async (e) => {
     e.preventDefault()
     await api.estudiantes.create(form)
-    setForm({ nombre: '', email: '' })
+    setForm({ nombres: '', apellidos: '', email: '', telefono: '', pais: '' })
     setPage(0)
     load()
   }
@@ -492,18 +493,20 @@ function EstudiantesSection() {
               <table>
                 <thead>
                   <tr>
-                    <th>Nombre</th>
+                    <th>Nombres</th>
+                    <th>Apellidos</th>
                     <th>Email</th>
                     <th>Acciones</th>
                   </tr>
                 </thead>
                 <tbody>
                   {(list.content || []).length === 0 ? (
-                    <tr><td colSpan={3} className="empty">No hay estudiantes</td></tr>
+                    <tr><td colSpan={4} className="empty">No hay estudiantes</td></tr>
                   ) : (
                     list.content.map(e => (
                       <tr key={e.id}>
-                        <td>{e.nombre}</td>
+                        <td>{e.nombres}</td>
+                        <td>{e.apellidos}</td>
                         <td>{e.email}</td>
                         <td>
                           <div style={{ display: 'flex', gap: 8 }}>
@@ -537,12 +540,24 @@ function EstudiantesSection() {
               </div>
               <form onSubmit={submit} className="form">
                 <div className="form-group">
-                  <label>Nombre Completo</label>
-                  <input className="input" required placeholder="Nombre del estudiante" value={form.nombre} onChange={e => setForm({ ...form, nombre: e.target.value })} />
+                  <label>Nombres</label>
+                  <input className="input" required placeholder="Nombres del estudiante" value={form.nombres} onChange={e => setForm({ ...form, nombres: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label>Apellidos</label>
+                  <input className="input" required placeholder="Apellidos del estudiante" value={form.apellidos} onChange={e => setForm({ ...form, apellidos: e.target.value })} />
                 </div>
                 <div className="form-group">
                   <label>Email</label>
                   <input className="input" required type="email" placeholder="email@ejemplo.com" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label>Teléfono</label>
+                  <input className="input" placeholder="+1234567890" value={form.telefono} onChange={e => setForm({ ...form, telefono: e.target.value })} />
+                </div>
+                <div className="form-group">
+                  <label>País</label>
+                  <input className="input" placeholder="País" value={form.pais} onChange={e => setForm({ ...form, pais: e.target.value })} />
                 </div>
                 <button className="btn btn-primary" type="submit">Registrar Estudiante</button>
               </form>
@@ -553,9 +568,10 @@ function EstudiantesSection() {
                 <div className="card-header">
                   <h3 className="card-title">Detalles del Estudiante</h3>
                 </div>
-      <div>
+                <div>
                   <p><strong>ID:</strong> {selected.id}</p>
-                  <p><strong>Nombre:</strong> {selected.nombre}</p>
+                  <p><strong>Nombres:</strong> {selected.nombres}</p>
+                  <p><strong>Apellidos:</strong> {selected.apellidos}</p>
                   <p><strong>Email:</strong> {selected.email}</p>
                   {selected.telefono && <p><strong>Teléfono:</strong> {selected.telefono}</p>}
                   {selected.pais && <p><strong>País:</strong> {selected.pais}</p>}
@@ -573,25 +589,48 @@ function EstudiantesSection() {
 }
 
 function InscripcionesSection() {
-  const [items, setItems] = useState([])
+  const [page, setPage] = useState(0)
+  const [size, setSize] = useState(10)
+  const [list, setList] = useState({ content: [], totalElements: 0 })
   const [form, setForm] = useState({ estudianteId: '', cursoId: '', progreso: 0 })
   const [loading, setLoading] = useState(false)
 
   const load = async () => {
     setLoading(true)
     try {
-      const data = await api.inscripciones.list()
-      setItems(Array.isArray(data) ? data : [])
+      const data = await api.inscripciones.list(`?page=${page}&size=${size}`)
+      let content = []
+      let total = 0
+      if (Array.isArray(data)) {
+        content = data
+        total = data.length
+      } else if (data && Array.isArray(data.content)) {
+        content = data.content
+        total = data.totalElements || content.length
+      } else if (data && Array.isArray(data.results)) {
+        content = data.results
+        total = data.total || content.length
+      } else {
+        // fallback: try to treat object as array-like
+        content = data || []
+        total = Array.isArray(content) ? content.length : 0
+      }
+
+      setList({ content, totalElements: total })
+    } catch (error) {
+      console.error('Error loading inscripciones:', error)
+      setList({ content: [], totalElements: 0 })
     } finally {
       setLoading(false)
     }
   }
-  useEffect(() => { load() }, [])
+  useEffect(() => { load() }, [page, size])
 
   const submit = async (e) => {
     e.preventDefault()
     await api.inscripciones.create({ ...form, progreso: Number(form.progreso || 0) })
     setForm({ estudianteId: '', cursoId: '', progreso: 0 })
+    setPage(0)
     load()
   }
 
@@ -609,7 +648,7 @@ function InscripcionesSection() {
       <div className="section-body">
         <div className="toolbar">
           <div className="toolbar-left">
-            <span><strong>Total Inscripciones: {items.length}</strong></span>
+            <span><strong>Total Inscripciones: {list.totalElements || (list.content || []).length}</strong></span>
           </div>
           <div className="toolbar-right">
             <button className="btn btn-primary" onClick={load}>Actualizar</button>
@@ -631,25 +670,25 @@ function InscripcionesSection() {
                 <tbody>
                   {loading ? (
                     <tr><td colSpan={4} className="loading">Cargando...</td></tr>
-                  ) : items.length === 0 ? (
+                  ) : (list.content || []).length === 0 ? (
                     <tr><td colSpan={4} className="empty">No hay inscripciones</td></tr>
                   ) : (
-                    items.map(i => (
-                      <tr key={i._id}>
+                    (list.content || []).map(i => (
+                      <tr key={i._id || i.id}>
                         <td>{i.estudianteId}</td>
                         <td>{i.cursoId}</td>
                         <td>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <div style={{ width: '100px', height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
-                              <div style={{ width: `${i.progreso || 0}%`, height: '100%', background: '#3182ce', transition: 'width 0.3s' }}></div>
+                              <div style={{ width: `${(i.progreso && (i.progreso.porcentaje || i.progreso)) || 0}%`, height: '100%', background: '#3182ce', transition: 'width 0.3s' }}></div>
                             </div>
-                            <span>{i.progreso || 0}%</span>
+                            <span>{(i.progreso && (i.progreso.porcentaje || i.progreso)) || 0}%</span>
                           </div>
                         </td>
                         <td>
                           <div style={{ display: 'flex', gap: 8 }}>
-                            <button className="btn btn-warning" onClick={() => actualizar(i._id, Math.max(0, (i.progreso || 0) - 10))}>-10%</button>
-                            <button className="btn btn-success" onClick={() => actualizar(i._id, Math.min(100, (i.progreso || 0) + 10))}>+10%</button>
+                            <button className="btn btn-warning" onClick={() => actualizar(i._id || i.id, Math.max(0, ((i.progreso && (i.progreso.porcentaje || i.progreso)) || 0) - 10))}>-10%</button>
+                            <button className="btn btn-success" onClick={() => actualizar(i._id || i.id, Math.min(100, ((i.progreso && (i.progreso.porcentaje || i.progreso)) || 0) + 10))}>+10%</button>
                           </div>
                         </td>
                       </tr>
@@ -658,10 +697,22 @@ function InscripcionesSection() {
                 </tbody>
               </table>
             </div>
+
+            <div className="pagination">
+              <button className="btn" onClick={() => setPage(Math.max(0, page - 1))} disabled={page === 0}>Anterior</button>
+              <span>Página {page + 1}</span>
+              <button className="btn" onClick={() => setPage(page + 1)}>Siguiente</button>
+              <select className="select" value={size} onChange={e => setSize(Number(e.target.value))}>
+                <option value={5}>5 por página</option>
+                <option value={10}>10 por página</option>
+                <option value={20}>20 por página</option>
+                <option value={50}>50 por página</option>
+              </select>
+            </div>
           </div>
 
           <div>
-      <div className="card">
+            <div className="card">
               <div className="card-header">
                 <h3 className="card-title">Nueva Inscripción</h3>
               </div>
@@ -687,10 +738,10 @@ function InscripcionesSection() {
                 <h3 className="card-title">Estadísticas</h3>
               </div>
               <div>
-                <p><strong>Total Inscripciones:</strong> {items.length}</p>
-                <p><strong>Completadas (100%):</strong> {items.filter(i => (i.progreso || 0) === 100).length}</p>
-                <p><strong>En Progreso:</strong> {items.filter(i => (i.progreso || 0) > 0 && (i.progreso || 0) < 100).length}</p>
-                <p><strong>Sin Iniciar (0%):</strong> {items.filter(i => (i.progreso || 0) === 0).length}</p>
+                <p><strong>Total Inscripciones:</strong> {list.totalElements || (list.content || []).length}</p>
+                <p><strong>Completadas (100%):</strong> {(list.content || []).filter(i => ((i.progreso && (i.progreso.porcentaje || i.progreso)) || 0) === 100).length}</p>
+                <p><strong>En Progreso:</strong> {(list.content || []).filter(i => { const p = (i.progreso && (i.progreso.porcentaje || i.progreso)) || 0; return p > 0 && p < 100 }).length}</p>
+                <p><strong>Sin Iniciar (0%):</strong> {(list.content || []).filter(i => ((i.progreso && (i.progreso.porcentaje || i.progreso)) || 0) === 0).length}</p>
               </div>
             </div>
           </div>
@@ -723,9 +774,9 @@ function DashboardSection() {
       try {
         console.log('Trying fallback data...')
         const [cursosData, estudiantesData, inscripcionesData] = await Promise.all([
-          api.cursos.list().catch(() => []),
-          api.estudiantes.list().catch(() => ({ content: [], totalElements: 0 })),
-          api.inscripciones.list().catch(() => [])
+          api.cursos.list('?page=1&size=100').catch(() => []),
+          api.estudiantes.list('?page=0&size=100').catch(() => ({ content: [], totalElements: 0 })),
+          api.inscripciones.list('?page=0&size=100').catch(() => [])
         ])
         
         const fallback = {

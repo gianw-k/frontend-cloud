@@ -2,6 +2,8 @@ import React, { useState, useEffect, useRef } from 'react';
 import API_BASE_URL from '../config/api';
 
 const baseUrlInscripciones = `${API_BASE_URL}/inscripciones`;
+const baseUrlEstudiantes = `${API_BASE_URL}/estudiantes`;
+const baseUrlCursos = `${API_BASE_URL}/cursos`;
 
 const tableStyle = {
   width: '100%',
@@ -27,6 +29,8 @@ const trHoverStyle = {
 
 function Inscripciones() {
   const [inscripciones, setInscripciones] = useState([]);
+  const [estudiantes, setEstudiantes] = useState([]);
+  const [cursos, setCursos] = useState([]);
   const [estudianteId, setEstudianteId] = useState('');
   const [cursoId, setCursoId] = useState('');
   const [loading, setLoading] = useState(false);
@@ -58,13 +62,42 @@ function Inscripciones() {
     }
   };
 
+  const cargarEstudiantes = async () => {
+    try {
+      const res = await fetch(`${baseUrlEstudiantes}?page=0&size=100`);
+      if (!res.ok) throw new Error('Error al cargar estudiantes');
+      const data = await res.json();
+      if (isMountedRef.current) {
+        setEstudiantes(data.content || []);
+      }
+    } catch (error) {
+      console.error('Error cargando estudiantes:', error);
+    }
+  };
+
+  const cargarCursos = async () => {
+    try {
+      const res = await fetch(`${baseUrlCursos}?page=1&size=100`);
+      if (!res.ok) throw new Error('Error al cargar cursos');
+      const data = await res.json();
+      if (isMountedRef.current) {
+        setCursos(Array.isArray(data) ? data : []);
+      }
+    } catch (error) {
+      console.error('Error cargando cursos:', error);
+    }
+  };
+
   const crearInscripcion = async (e) => {
     e.preventDefault();
     try {
       const res = await fetch(baseUrlInscripciones, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ estudianteId, cursoId }),
+        body: JSON.stringify({ 
+          estudianteId, 
+          cursoId: parseInt(cursoId)
+        }),
       });
       if (!res.ok) {
         throw new Error('Error al crear inscripción');
@@ -94,13 +127,25 @@ function Inscripciones() {
     }
   };
 
+  const getNombreEstudiante = (id) => {
+    const est = estudiantes.find(e => e.id === id);
+    return est ? `${est.nombres} ${est.apellidos}` : id;
+  };
+
+  const getNombreCurso = (id) => {
+    const cur = cursos.find(c => c.id === id || c.id === parseInt(id));
+    return cur ? cur.titulo : id;
+  };
+
   const verDetalles = (inscripcion) => {
-    alert(`Detalles:\nID: ${inscripcion._id || inscripcion.id}\nEstudiante: ${inscripcion.estudianteId}\nCurso: ${inscripcion.cursoId}\nProgreso: ${inscripcion.progreso?.porcentaje || 0}%`);
+    alert(`Detalles:\nID: ${(inscripcion._id || inscripcion.id || '').substring(0, 8)}\nEstudiante: ${getNombreEstudiante(inscripcion.estudianteId)}\nCurso: ${getNombreCurso(inscripcion.cursoId)}\nProgreso: ${inscripcion.progreso?.porcentaje || 0}%\nEstado: ${inscripcion.estado}`);
   };
 
   useEffect(() => {
     isMountedRef.current = true;
     listarInscripciones();
+    cargarEstudiantes();
+    cargarCursos();
     
     return () => {
       isMountedRef.current = false;
@@ -115,15 +160,16 @@ function Inscripciones() {
         onClick={listarInscripciones}
         disabled={loading}
       >
-        {loading ? 'Cargando...' : 'Listar Inscripciones'}
+        {loading ? 'Cargando...' : 'Refrescar'}
       </button>
       
       <table style={tableStyle}>
         <thead>
           <tr>
             <th style={thStyle}>ID</th>
-            <th style={thStyle}>Estudiante ID</th>
-            <th style={thStyle}>Curso ID</th>
+            <th style={thStyle}>Estudiante</th>
+            <th style={thStyle}>Curso</th>
+            <th style={thStyle}>Estado</th>
             <th style={thStyle}>Progreso</th>
             <th style={thStyle}>Acciones</th>
           </tr>
@@ -131,18 +177,19 @@ function Inscripciones() {
         <tbody>
           {loading ? (
             <tr>
-              <td colSpan="5" style={{ textAlign: 'center', padding: '20px' }}>Cargando...</td>
+              <td colSpan="6" style={{ textAlign: 'center', padding: '20px' }}>Cargando...</td>
             </tr>
           ) : inscripciones.length === 0 ? (
             <tr>
-              <td colSpan="5" style={{ textAlign: 'center', padding: '20px' }}>No hay inscripciones</td>
+              <td colSpan="6" style={{ textAlign: 'center', padding: '20px' }}>No hay inscripciones</td>
             </tr>
           ) : (
             inscripciones.map((inscripcion, index) => (
               <tr key={inscripcion._id || inscripcion.id || index} style={index % 2 ? trHoverStyle : {}}>
-                <td style={tdStyle}>{inscripcion._id || inscripcion.id}</td>
-                <td style={tdStyle}>{inscripcion.estudianteId}</td>
-                <td style={tdStyle}>{inscripcion.cursoId}</td>
+                <td style={tdStyle}>{(inscripcion._id || inscripcion.id || '').substring(0, 8)}</td>
+                <td style={tdStyle}>{getNombreEstudiante(inscripcion.estudianteId)}</td>
+                <td style={tdStyle}>{getNombreCurso(inscripcion.cursoId)}</td>
+                <td style={tdStyle}>{inscripcion.estado || 'activa'}</td>
                 <td style={tdStyle}>{inscripcion.progreso?.porcentaje || 0}%</td>
                 <td style={tdStyle}>
                   <button 
@@ -153,7 +200,7 @@ function Inscripciones() {
                   </button>
                   <button 
                     style={{ backgroundColor: '#28a745', color: 'white', padding: '6px 12px', border: 'none', borderRadius: '4px', cursor: 'pointer', marginRight: '5px' }} 
-                    onClick={() => actualizarProgreso(inscripcion._id || inscripcion.id, Math.min(100, (inscripcion.progreso?.porcentaje || 0) + 10))}
+                    onClick={() => actualizarProgreso(inscripcion._id, Math.min(100, (inscripcion.progreso?.porcentaje || 0) + 10))}
                   >
                     +10%
                   </button>
@@ -174,22 +221,36 @@ function Inscripciones() {
       <h3>Crear Inscripción</h3>
       <form onSubmit={crearInscripcion} style={{ marginTop: '20px' }}>
         <div style={{ marginBottom: '10px' }}>
-          <label>Estudiante ID: </label>
-          <input 
+          <label>Estudiante: </label>
+          <select 
             value={estudianteId} 
             onChange={(e) => setEstudianteId(e.target.value)} 
             required 
-            style={{ padding: '6px', width: '100%' }} 
-          />
+            style={{ padding: '6px', width: '100%' }}
+          >
+            <option value="">Seleccionar estudiante...</option>
+            {estudiantes.map(est => (
+              <option key={est.id} value={est.id}>
+                {est.nombres} {est.apellidos} ({est.email})
+              </option>
+            ))}
+          </select>
         </div>
         <div style={{ marginBottom: '10px' }}>
-          <label>Curso ID: </label>
-          <input 
+          <label>Curso: </label>
+          <select 
             value={cursoId} 
             onChange={(e) => setCursoId(e.target.value)} 
             required 
-            style={{ padding: '6px', width: '100%' }} 
-          />
+            style={{ padding: '6px', width: '100%' }}
+          >
+            <option value="">Seleccionar curso...</option>
+            {cursos.map(cur => (
+              <option key={cur.id} value={cur.id}>
+                {cur.titulo} ({cur.nivel})
+              </option>
+            ))}
+          </select>
         </div>
         <button 
           type="submit" 
